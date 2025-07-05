@@ -90,11 +90,21 @@ if uploaded_file is not None:
     df = pd.read_excel(uploaded_file, engine="xlrd")
     results = df.apply(process_row, axis=1)
     df_final = pd.concat([df, results], axis=1)
+        
+    # Determine the first column from the original Excel
+    original_columns = df.columns.tolist()
+    first_column = original_columns[0]
 
-    # Reorder columns
-    first_cols = ["Grouped_Risk", "PSA_preoperation", "Gleason_preoperation", "Gleason_postoperation", "TNM_preoperation", "TNM_postoperation"]
-    remaining_cols = [col for col in df_final.columns if col not in first_cols]
-    df_final = df_final[first_cols + remaining_cols]
+    # Define target columns to insert
+    insert_cols = ["Grouped_Risk", "PSA_preoperation", "Gleason_preoperation",
+                "Gleason_postoperation", "TNM_preoperation", "TNM_postoperation"]
+
+    # Build the new order: first column + insert_cols + rest
+    all_columns = [first_column] + insert_cols + [col for col in df_final.columns
+                                                if col not in insert_cols and col != first_column]
+
+    # Reorder df_final
+    df_final = df_final[all_columns]
 
     st.success("Risk stratification complete!")
     st.dataframe(df_final)
